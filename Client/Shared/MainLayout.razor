@@ -1,0 +1,67 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.Authorization
+
+@* <div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+            <AuthorizeView>
+                <Authorized>
+                    <label>&nbsp;</label>
+                    <strong>Hello, @context.User.Identity.Name!</strong>
+                    <a href="@context.User.FindFirst("bff:logout_url")?.Value">Log out</a>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="bff/login">Log in</a>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div> *@
+
+<AuthorizeView>
+    <Authorized>
+        <div class="flex">
+
+            <!-- Sidebar -->
+            <div class="w-64 bg-stone-200 p-4 flex-shrink-0">
+                <!-- Sidebar content goes here -->
+                <SideMenu />
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-grow overflow-hidden ml-4">
+                <!-- Navbar -->
+                <div class="px-4 bg-stone-200 dark:bg-gray-900">
+                    <!-- Navbar content goes here -->
+                    <NavMenu />
+                </div>
+
+                <!-- Main content goes here -->
+                <div class="flex overflow-hidden">
+                    <div class="w-full overflow-x-auto">
+                        <div class="bg-white rounded-3xl mr-3">
+                            <main class="p-4">
+                                @Body
+                            </main>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        @{
+            NavigationManager.NavigateTo("bff/login", forceLoad: true); // Redirect to login page
+        }
+    </NotAuthorized>
+</AuthorizeView>

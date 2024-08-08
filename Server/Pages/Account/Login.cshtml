@@ -1,0 +1,180 @@
+﻿@page ""
+@model Blazor.Server.Pages.Account.LoginModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Login</title>
+
+    <link href="../css/style.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    width: {
+                        '88': '22rem',
+                        '50': '12.5rem', // Setara dengan w-50
+                        '55': '13.75rem', // Setara dengan w-55
+                        '63': '15.75rem', // Setara dengan w-55
+                        '25': '6.25rem',
+                        '28': '7rem',
+                        '30': '7.5rem'
+                    },
+                    margin: {
+                        '1.25': '1.25rem'
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="images/favicon.png" />
+</head>
+
+<body>
+    <div id="app">
+        <div class="loading-spinner"></div>
+        <div class="login-content flex justify-center items-start pt-3" style="display:none;">
+            <div class="flex flex-col items-center">
+                <div class="h-64 w-64 rounded-full bg-white flex justify-center items-center mt-5">
+                    <!-- Gambar bundar di tengah -->
+                    <img src="/images/logobpn.png" alt="Your Image" class="h-48 w-48 mr-1.25" />
+                </div>
+                <div class="text-white text-xl font-semibold font-Barlow mt-5">
+                    .:: SISTEM INFORMASI TANAH TELANTAR ::.
+                </div>
+                <form method="post" class="form-signin mt-4">
+                    <AntiforgeryToken />
+                    <DataAnnotationsValidator />
+                    <input type="hidden" asp-for="ReturnUrl" />
+                    <div class="flex justify-center items-start">
+                        <div class="flex flex-col items-center">
+                            <div class="relative px-3 py-1">
+                                <div class="absolute top-0 mt-[-80px] text-center w-full">
+                                    @if (@Model.ErrorMessage != null)
+                                    {
+                                        <div id="alert-border-2" style="position: fixed; top: 20px; right: 20px;" class="absolute top-0 right-0 mt-8 mr-8 z-50 p-4 text-sm text-red-800 border-t-4 border-red-300 bg-white dark:text-red-400 dark:bg-gray-800 dark:border-red-800 rounded-md" role="alert">
+                                            <div class="flex items-center justify-between">
+                                                <span>@Model.ErrorMessage</span>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    @if (Model.ValidationMessages.Count() > 0)
+                                    {
+                                        <div id="alert-border-2" style="position: fixed; top: 20px; right: 20px;" class="absolute top-0 right-0 mt-8 mr-8 z-50 p-4 text-sm text-red-800 border-t-4 border-red-300 bg-white dark:text-red-400 dark:bg-gray-800 dark:border-red-800 rounded-md" role="alert">
+                                            <div class="list-none p-0">
+                                                <ul class="ml-2 list-disc p-0">
+                                                    @foreach (var message in Model.ValidationMessages)
+                                                    {
+                                                        <li class="flex items-center">
+                                                            <span class="mr-2">•</span>
+                                                            <p>@message</p>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <script>
+                                        var loadingSpinner = document.querySelector('.loading-spinner');
+                                        var loginContent = document.querySelector('.login-content');
+
+                                        if (loadingSpinner) {
+                                            loadingSpinner.style.display = 'none';
+                                            loginContent.style.display = 'block';
+                                            document.body.classList.add('bg-sky-900');
+                                        }
+
+                                        setTimeout(function () {
+                                            document.getElementById('alert-border-2').style.display = 'none';
+                                        }, 5000);
+                                    </script>
+                                </div>
+
+                                <!-- Input untuk username -->
+                                <input type="text" asp-for="Input.Username" placeholder="Username..." id="username" class="w-55 placeholder-black text-xs font-normal font-Inter pl-10 rounded-full focus:outline-none" autofocus>
+                                <!-- Icon orang di dalam input -->
+                                <span class="absolute inset-y-0 flex items-center">
+                                    <svg class="w-5 h-5 dark:text-gray-800  ml-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 14 18">
+                                        <path d="M7 9a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm2 1H5a5.006 5.006 0 0 0-5 5v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2a5.006 5.006 0 0 0-5-5Z" />
+                                    </svg>
+                                </span>
+                            </div>
+                            <div class="relative px-3 py-1">
+                                <!-- Input untuk password -->
+                                <input type="password" asp-for="Input.Password" placeholder="Password..." id="password" class="w-55 placeholder-black text-xs font-normal font-Inter pl-10 rounded-full focus:outline-none" autocomplete="off">
+                                <!-- Icon kunci di dalam input -->
+                                <span class="absolute inset-y-0 ml-3 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="w-5 dark:text-gray-800  h-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+                                    </svg>
+                                </span>
+                            </div>
+                            <div class="relative px-3 py-5">
+                                <button type="submit" class="block text-sky-900 h-8 rounded-full focus:outline-none focus:ring-4  font-bold font-Inter rounded-full text-xs px-5 dark:bg-amber-400 dark:hover:bg-amber-300 dark:focus:ring-blue-800 inline-flex items-center">
+                                    <svg class="w-4 h-4 dark:text-sky-900 " aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 15">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 7.5h11m0 0L8 3.786M12 7.5l-4 3.714M12 1h3c.53 0 1.04.196 1.414.544.375.348.586.82.586 1.313v9.286c0 .492-.21.965-.586 1.313A2.081 2.081 0 0 1 15 14h-3" />
+                                    </svg>
+                                    <span style="margin-left: 5px;">Login</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
+    <script>
+        window.onload = function () {
+            // Tambahkan penundaan selama 3 detik sebelum menyembunyikan animasi loading
+            setTimeout(function () {
+                var loadingSpinner = document.querySelector('.loading-spinner');
+                var loginContent = document.querySelector('.login-content');
+
+                if (loadingSpinner) {
+                    loadingSpinner.style.display = 'none';
+                    loginContent.style.display = 'block';
+                    document.body.classList.add('bg-sky-900');
+                }
+            }, 2000); // Penundaan 3 detik (3000 milidetik)
+        };
+    </script>
+    <script>
+        // Ambil elemen yang menampilkan pesan validasi
+        var validationTooltip = document.querySelector('.validation-tooltip');
+        // Ambil input field yang berkaitan
+        var usernameInput = document.getElementById('username');
+
+        // Event saat pesan validasi muncul
+        usernameInput.addEventListener('invalid', function (event) {
+            // Set text pada span sebagai pesan validasi
+            validationTooltip.textContent = event.target.validationMessage;
+            // Tampilkan sebagai tooltip dengan title
+            usernameInput.title = event.target.validationMessage;
+        });
+
+        // Event saat input field diubah (untuk menyembunyikan tooltip saat input diubah)
+        usernameInput.addEventListener('input', function (event) {
+            // Sembunyikan tooltip dengan mengosongkan text dan title
+            validationTooltip.textContent = '';
+            usernameInput.title = '';
+        });
+    </script>
+</body>
+
+</html>

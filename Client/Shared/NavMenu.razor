@@ -1,0 +1,159 @@
+﻿@* <div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">Blazor</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="counter">
+                <span class="oi oi-plus" aria-hidden="true"></span> Counter
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="fetchdata">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
+            </NavLink>
+        </div>
+    </nav>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+} *@
+
+@using Blazor.Client.Services
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject BreadcrumbUpdateService breadcrumbService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+@implements IDisposable
+
+<!-- Konten NavMenu -->
+<div class="grid grid-cols-3 gap-4 py-2">
+    <div class="flex items-center dark:bg-gray-800 h-10">
+        <span class="@(_activeMenuName == null ? "text-stone-200" : "text-sky-900") @(_activeMenuName?.Length > 30 && _activeMenuName?.Length < 36 ? "text-base" : (_activeMenuName?.Length > 36 ? "text-sm" : "text-lg")) ml-3 font-bold font-Inter py-2">@(_activeMenuName == null ? "EMPTY" : _activeMenuName)</span>
+    </div>
+    <div class="flex items-center ml-auto dark:bg-gray-800">
+        <div @onclick="ExpandInput" @onfocusout="CollapseInput" class="relative @searchInput h-9 md:block">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-4 h-4 mt-1 text-white dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"></path></svg>
+                <span class="sr-only">Search icon</span>
+            </div>
+            <input type="text" id="search-navbar" class="block w-full p-2 pl-10 text-sm font-normal text-white border border-gray-300 rounded-3xl bg-sky-900 placeholder-white focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Cari">
+        </div>
+    </div>
+    <div class="flex items-center dark:bg-gray-800">
+        <ul class="flex flex-row justify-end items-center p-4 md:p-0 ml-3 font-medium md:flex-row md:space-x-8 md:mt-0 dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
+            <li>
+                <a href="javascript:void(0);" event.preventDefault(); class="flex p-1 text-white rounded-lg dark:text-white hover:bg-stone-300 dark:hover:bg-gray-700 group">
+                    <img src="/images/screwdriver-wrench-solid 1.svg" class="w-4 h-4 mb-2 mt-2">
+                    <span class="ml-1 mt-2 text-xs font-normal text-left font-Inter text-sky-900">Tools</span>
+                </a>
+            </li>
+            <li>
+                <a href="javascript:void(0);" event.preventDefault(); class="flex p-1 text-white rounded-lg dark:text-white hover:bg-stone-300 dark:hover:bg-gray-700 group">
+                    <img src="/images/user-solid 2.svg" class="w-4 h-4 mb-2 mt-2">
+                    <span class="ml-1 mt-2 text-xs font-normal text-left font-Inter text-sky-900 whitespace-nowrap">Profile User</span>
+                </a>
+            </li>
+            <li>
+                <AuthorizeView>
+                    <Authorized>
+                        @* <label>&nbsp;</label>
+                        <strong>Hello, @context.User.Identity.Name!</strong>
+                        <a href="@context.User.FindFirst("bff:logout_url")?.Value">Log out</a> *@
+                        @*@onclick:preventDefault="true" @onclick="Logout" *@
+                        <a href="@context.User.FindFirst("bff:logout_url")?.Value" class="flex p-1 text-white rounded-lg dark:text-white hover:bg-stone-300 dark:hover:bg-gray-700 group">
+                            <img src="/images/right-from-bracket-solid 1.svg" class="w-4 h-4 mb-2 mt-2">
+                            <span class="ml-1 mt-2 text-xs font-normal text-left font-Inter text-sky-900">Logout</span>
+                        </a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="bff/login">Log in</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </li>
+        </ul>
+    </div>
+</div>
+
+@code {
+    private string? _activeMenuName;
+    private string? _lastActiveMenuName;
+    private bool isExpanded = false;
+    private string searchInput => isExpanded ? "w-52" : "w-24";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _lastActiveMenuName = await JSRuntime.InvokeAsync<string>("blazorLocalStorage.getItem", "_activeMenuName");
+
+            if (string.IsNullOrEmpty(_activeMenuName) && string.IsNullOrEmpty(_lastActiveMenuName))
+            {
+                await JSRuntime.InvokeVoidAsync("blazorLocalStorage.setItem", "_activeMenuName", "Beranda");
+                _activeMenuName = await JSRuntime.InvokeAsync<string>("blazorLocalStorage.getItem", "_activeMenuName");
+                StateHasChanged(); // Memastikan perubahan di-render setelah mendapatkan nilai _activeMenuName
+            }
+            else
+            {
+                _activeMenuName = await JSRuntime.InvokeAsync<string>("blazorLocalStorage.getItem", "_activeMenuName");
+                StateHasChanged(); // Memastikan perubahan di-render setelah mendapatkan nilai _activeMenuName
+            }
+            breadcrumbService.OnBreadcrumbUpdate += UpdateBreadcrumb;
+        }
+    }
+
+    public void UpdateBreadcrumb(string updatedBreadcrumb)
+    {
+        InvokeAsync(() =>
+        {
+            _activeMenuName = updatedBreadcrumb;
+            JSRuntime.InvokeVoidAsync("blazorLocalStorage.setItem", "_activeMenuName", _activeMenuName);
+            StateHasChanged();
+        });
+    }
+
+    // Pastikan untuk menghapus langganan event pada saat komponen dihancurkan (disposed)
+    public void Dispose()
+    {
+        breadcrumbService.OnBreadcrumbUpdate -= UpdateBreadcrumb;
+    }
+
+    private void ExpandInput()
+    {
+        isExpanded = true;
+        StateHasChanged();
+    }
+
+    private void CollapseInput()
+    {
+        isExpanded = false;
+        StateHasChanged();
+    }
+
+    private async Task DeleteCookiesWithPartialName(string partialName)
+    {
+        await JSRuntime.InvokeVoidAsync("cookieFunction.deleteCookiesWithPartialName", partialName);
+    }
+}
